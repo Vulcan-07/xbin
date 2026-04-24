@@ -242,6 +242,14 @@ export default function Session() {
       }
   };
 
+  const leaveSession = () => {
+      if (window.confirm('Disconnect and leave this session?')) {
+          if (socket) socket.disconnect();
+          localStorage.removeItem(`sys_paste_name_${sessionId}`);
+          navigate('/');
+      }
+  };
+
   const copyCode = () => {
       navigator.clipboard.writeText(content);
   };
@@ -320,11 +328,15 @@ export default function Session() {
               </div>
               
               {isCreator && (
-                  <button onClick={terminateSession} className="flex items-center text-red-500 hover:text-red-400 border border-red-900 px-3 py-1 rounded-sm hover:bg-red-900/30 transition-colors">
+                  <button onClick={terminateSession} title="Destroy session for everyone" className="flex items-center text-red-500 hover:text-red-400 border border-red-900 px-3 py-1 rounded-sm hover:bg-red-900/30 transition-colors">
                       <Power size={14} className="mr-2" />
                       TERMINATE
                   </button>
               )}
+              
+              <button onClick={leaveSession} title="Disconnect from session" className="flex items-center text-gray-400 hover:text-white border border-[#004400] px-3 py-1 rounded-sm hover:bg-[#002200] transition-colors">
+                  LEAVE
+              </button>
           </div>
       </header>
 
