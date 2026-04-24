@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import Editor from '@monaco-editor/react';
-import { Terminal, Upload, Download, Copy, Users, Power, File as FileIcon, Trash } from 'lucide-react';
+import { Upload, Download, Copy, Users, Power, File as FileIcon, Trash, Skull } from 'lucide-react';
 import { format } from 'date-fns';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || `http://${window.location.hostname}:3001`;
@@ -332,11 +332,12 @@ export default function Session() {
 
     if (!isJoined) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-black">
-                <form onSubmit={handleJoin} className="p-8 border border-hacker-green bg-[#050505] shadow-[0_0_15px_rgba(0,255,0,0.2)] max-w-md w-full">
-                    <div className="flex items-center mb-6 text-hacker-green">
-                        <Terminal className="mr-3" />
-                        <h2 className="text-xl font-bold">CONNECT_TO_SESSION</h2>
+            <div className="min-h-screen flex items-center justify-center bg-black crt-flicker">
+                <form onSubmit={handleJoin} className="p-8 border-2 border-[#00ff41] bg-[#020202] shadow-[0_0_30px_rgba(0,255,65,0.2)] max-w-md w-full relative group">
+                    <div className="absolute top-0 left-0 w-full h-[2px] bg-[#00ff41] shadow-[0_0_10px_#00ff41]" />
+                    <div className="flex items-center mb-8 text-[#00ff41]">
+                        <Skull className="mr-3" />
+                        <h2 className="text-2xl font-bold font-display tracking-widest outline-none">AUTH_REQUIRED</h2>
                     </div>
                     <div className="mb-6">
                         <label className="block text-xs text-hacker-greenDark mb-2 uppercase">ALIAS / IDENTIFIER</label>
@@ -345,7 +346,7 @@ export default function Session() {
                             autoFocus
                             value={displayName}
                             onChange={(e) => setDisplayName(e.target.value)}
-                            className="w-full bg-hacker-darker border-b border-hacker-greenDark focus:border-hacker-green outline-none text-hacker-green px-2 py-2 font-mono placeholder:text-[#004400]"
+                            className="w-full bg-[#000000] border-b-2 border-[#004400] focus:border-[#00ff41] focus:bg-[#051505] outline-none text-[#00ff41] px-3 py-3 font-mono placeholder:text-[#004400] transition-colors"
                             placeholder="e.g. Neo"
                             required
                         />
@@ -357,13 +358,13 @@ export default function Session() {
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-hacker-darker border-b border-hacker-greenDark focus:border-hacker-green outline-none text-hacker-green px-2 py-2 font-mono placeholder:text-[#004400]"
-                                placeholder="Enter Session Password"
+                                className="w-full bg-[#000000] border-b-2 border-[#004400] focus:border-[#00ff41] focus:bg-[#051505] outline-none text-[#00ff41] px-3 py-3 font-mono placeholder:text-[#004400] transition-colors"
+                                placeholder="Enter Access Key"
                                 required
                             />
                         </div>
                     )}
-                    <button type="submit" className="w-full bg-hacker-green text-black font-bold py-2 hover:bg-[#33ff33] transition-colors">
+                    <button type="submit" className="w-full bg-[#00ff41] text-black font-bold font-display tracking-widest py-3 mt-4 hover:bg-[#33ff33] hover:shadow-[0_0_15px_#00ff41] transition-all duration-300">
                         [ INITIATE_HANDSHAKE ]
                     </button>
                 </form>
@@ -372,17 +373,17 @@ export default function Session() {
     }
 
     return (
-        <div className="h-screen flex flex-col bg-black text-[#00dd00]">
+        <div className="h-screen flex flex-col bg-black text-[#00ff41] crt-flicker">
             {/* Header */}
-            <header className="h-14 border-b border-[#003300] flex items-center justify-between px-4 bg-[#030303]">
+            <header className="h-14 border-b border-[#004400] flex items-center justify-between px-6 bg-[#020202]">
                 <div className="flex items-center space-x-6">
-                    <div className="font-bold text-white flex items-center">
-                        <Terminal size={18} className="mr-2 text-[#00ff00]" />
+                    <div className="font-bold text-white flex items-center font-display text-xl tracking-wider">
+                        <Skull size={20} className="mr-2 text-[#00ff41] drop-shadow-[0_0_5px_rgba(0,255,65,0.8)]" />
                         0xD3ad
                     </div>
-                    <div className="flex items-center space-x-2 text-xs border border-[#004400] px-3 py-1 rounded-sm bg-[#050505]">
-                        <span className="text-gray-400">SESSION:</span>
-                        <span className="font-bold">{sessionId}</span>
+                    <div className="flex items-center space-x-2 text-xs border border-[#00ff41] px-3 py-1 bg-[#001100]">
+                        <span className="text-gray-400 font-display">SESSION:</span>
+                        <span className="font-bold text-[#00ff41]">{sessionId}</span>
                         <button onClick={copyUrl} className="ml-2 hover:text-white" title="Copy URL"><Copy size={12} /></button>
                     </div>
                 </div>
@@ -410,12 +411,12 @@ export default function Session() {
             <div className="flex-1 flex overflow-hidden">
 
                 {/* Left Panel: Editor */}
-                <div className="flex-1 flex flex-col border-r border-[#003300]">
-                    <div className="h-10 border-b border-[#003300] flex items-center justify-between px-4 bg-[#0a0a0a]">
+                <div className="flex-1 flex flex-col border-r border-[#004400] relative bg-[linear-gradient(rgba(0,255,65,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,65,0.02)_1px,transparent_1px)] bg-[size:20px_20px]">
+                    <div className="h-10 border-b border-[#004400] flex items-center justify-between px-4 bg-[#000000] z-10">
                         <select
                             value={language}
                             onChange={handleLanguageChange}
-                            className="bg-black text-[#00ff00] border border-[#004400] px-2 py-1 text-xs outline-none focus:border-hacker-green"
+                            className="bg-black text-[#00ff41] border border-[#00ff41] px-2 py-1 text-xs outline-none focus:bg-[#001100] font-display uppercase tracking-widest cursor-pointer"
                         >
                             <option value="javascript">JavaScript</option>
                             <option value="typescript">TypeScript</option>
@@ -431,7 +432,7 @@ export default function Session() {
                             <Copy size={14} className="mr-1" /> Copy Code
                         </button>
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 opacity-95">
                         <Editor
                             height="100%"
                             defaultLanguage="javascript"
@@ -453,15 +454,15 @@ export default function Session() {
                 </div>
 
                 {/* Right Panel: Chat & Files */}
-                <div className="w-[400px] flex flex-col bg-[#020202]">
+                <div className="w-[450px] flex flex-col bg-[#000000] relative bg-[linear-gradient(rgba(0,255,65,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,65,0.02)_1px,transparent_1px)] bg-[size:20px_20px]">
 
                     {/* Terminal Chat */}
-                    <div className="flex-1 flex flex-col min-h-0 border-b border-[#003300]">
-                        <div className="h-10 bg-[#0a0a0a] border-b border-[#003300] flex items-center px-4 text-xs font-bold text-gray-400">
+                    <div className="flex-1 flex flex-col min-h-0 border-b border-[#004400] z-10">
+                        <div className="h-10 bg-[#001100] border-b border-[#00ff41] flex items-center px-4 text-xs font-bold text-[#00ff41] font-display tracking-widest">
                             SYS_TERM // COMMLINK
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-4 font-mono text-sm space-y-2">
+                        <div className="flex-1 overflow-y-auto p-4 font-mono text-sm space-y-2 bg-transparent text-[#00ff41] drop-shadow-[0_0_2px_rgba(0,255,65,0.8)]">
                             {messages.map(msg => (
                                 <div key={msg.id} className={`${msg.type === 'system' ? 'text-gray-500 italic' : ''}`}>
                                     <span className="opacity-50 mr-2 text-xs">[{format(msg.timestamp, 'HH:mm:ss')}]</span>
@@ -475,27 +476,27 @@ export default function Session() {
                             <div ref={messagesEndRef} />
                         </div>
 
-                        <form onSubmit={sendTerminalMsg} className="p-2 border-t border-[#003300] bg-black flex items-center">
-                            <span className="text-[#00ff00] mr-2">❯</span>
+                        <form onSubmit={sendTerminalMsg} className="p-3 border-t border-[#004400] bg-[#020202] flex items-center">
+                            <span className="text-[#00ff41] mr-3 font-bold">root@0xD3ad:~#</span>
                             <input
                                 type="text"
                                 value={chatInput}
                                 onChange={e => setChatInput(e.target.value)}
-                                className="flex-1 bg-transparent outline-none text-[#00ff00] placeholder:text-[#004400]"
-                                placeholder="Type cmd (/clear, /who) or message..."
+                                className="flex-1 bg-transparent outline-none text-[#00ff41] placeholder:text-[#004400] font-mono tracking-tight"
+                                placeholder="Type cmd..."
                             />
                         </form>
                     </div>
 
                     {/* Files Area */}
-                    <div className="h-1/3 flex flex-col min-h-0">
-                        <div className="h-10 bg-[#0a0a0a] border-b border-[#003300] flex items-center justify-between px-4 text-xs font-bold text-gray-400">
+                    <div className="h-1/3 flex flex-col min-h-0 z-10 bg-black/80">
+                        <div className="h-10 bg-[#001100] border-y border-[#00ff41] flex items-center justify-between px-4 text-xs font-bold text-[#00ff41] font-display tracking-widest">
                             FILE_SHARE
 
                             <button
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={uploading}
-                                className="text-[#00ff00] hover:text-white flex items-center disabled:opacity-50"
+                                className="text-[#00ff41] hover:text-white flex items-center disabled:opacity-50 hover:shadow-[0_0_5px_#00ff41]"
                             >
                                 <Upload size={14} className="mr-1" />
                                 {uploading ? 'UP...' : 'UPLOAD'}
@@ -513,8 +514,8 @@ export default function Session() {
                                 <div className="text-gray-600 text-xs text-center mt-4">NO_FILES_DETECTED</div>
                             ) : (
                                 files.map((file, i) => (
-                                    <div key={i} className="flex items-center justify-between p-2 hover:bg-[#0a0a0a] border border-transparent hover:border-[#003300] text-sm group">
-                                        <div className="flex items-center truncate mr-2 text-gray-300">
+                                    <div key={i} className="flex items-center justify-between p-2 hover:bg-[#001100] border border-transparent hover:border-[#00ff41] text-sm group transition-all">
+                                        <div className="flex items-center truncate mr-2 text-gray-300 drop-shadow-[0_0_2px_rgba(255,255,255,0.4)]">
                                             <FileIcon size={14} className="mr-2 text-gray-500" />
                                             <span className="truncate">{file.name}</span>
                                             <span className="ml-2 text-[10px] text-hacker-greenDark truncate max-w-[80px]">[{file.uploader}]</span>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Terminal, Shield, Zap } from 'lucide-react';
+import { Skull } from 'lucide-react';
 
 export default function Landing() {
   const [loading, setLoading] = useState(false);
@@ -28,62 +28,46 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#0a1a0a] via-[#000] to-[#000]">
-      {/* Background Grid Pattern */}
-      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'linear-gradient(rgba(0,255,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,0,0.1) 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
-      
-      <div className="z-10 text-center max-w-2xl px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center relative bg-[#020202] crt-flicker overflow-hidden">
+      {/* Heavy Grid Pattern Overlay */}
+      <div className="absolute inset-0 z-0 opacity-40 mix-blend-screen bg-[linear-gradient(rgba(0,255,65,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,65,0.03)_1px,transparent_1px)] bg-[size:30px_30px]" />
+
+      <div className="z-10 text-center max-w-2xl px-6 relative">
+        <div className="absolute -top-32 -left-32 w-64 h-64 bg-[#00ff41] rounded-full blur-[150px] opacity-20 animate-pulse pointer-events-none" />
         <div className="flex justify-center mb-6">
-          <Terminal size={64} className="text-hacker-green animate-pulse" />
+          <Skull size={80} className="text-[#00ff41] drop-shadow-[0_0_15px_rgba(0,255,65,1)] animate-glitch object-contain" />
         </div>
-        <h1 className="text-5xl font-bold mb-4 tracking-tighter">
-          <span className="text-white">SYS_</span>PASTE
+        <h1 className="text-6xl font-bold mb-4 tracking-[0.2em] font-display text-[#00ff41] drop-shadow-[0_0_10px_#00ff41]">
+          <span className="text-white">0x</span>D3ad
         </h1>
-        <p className="text-hacker-greenDark text-lg mb-8" style={{ textShadow: '0 0 5px #00ff0033' }}>
-          Real-time collaborative workspace. Ephemeral by design. 
-          Auto-destruct sequence engaged at 24.00h.
+        <p className="text-[#00ff41]/80 text-xl mb-16 font-mono tracking-widest uppercase" style={{ textShadow: '0 0 5px #00ff41' }}>
+          Privacy is an illusion… until you build it
         </p>
 
-        <button 
+        <button
           onClick={handleCreateSession}
           disabled={loading}
-          className="group relative px-8 py-4 bg-transparent border-2 border-hacker-green text-hacker-green text-xl font-bold rounded-sm uppercase tracking-widest hover:bg-hacker-green hover:text-black transition-all duration-300 disabled:opacity-50"
+          className="group relative px-10 py-5 bg-[#001100] border-2 border-[#00ff41] text-[#00ff41] text-2xl font-bold font-display uppercase tracking-[0.3em] hover:bg-[#00ff41] hover:text-black transition-all duration-300 disabled:opacity-50 overflow-hidden shadow-[0_0_20px_rgba(0,255,65,0.3)] hover:shadow-[0_0_40px_rgba(0,255,65,0.6)]"
         >
-          {loading ? 'Initializing...' : 'Initialize_Session'}
-          
-          {/* Glitch Effect on Hover via pseudo elements, kept simple here with glow */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 shadow-[0_0_20px_#00ff00] transition-opacity duration-300 pointer-events-none" />
+          {loading ? 'INITIALIZING_NODE...' : 'INITIALIZE_NODE'}
+
+          {/* Scanline Effect on Button */}
+          <div className="absolute inset-0 bg-scanlines opacity-0 group-hover:opacity-100 pointer-events-none" />
+          <div className="absolute top-0 left-0 w-full h-1 bg-white opacity-50 group-hover:animate-pulse pointer-events-none mix-blend-overlay" />
         </button>
-        
-        <div className="mt-4 flex justify-center">
-            <input 
-                type="password"
-                placeholder="[OPTIONAL] PASSWORD"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-transparent border-b border-[#003300] text-center text-xs text-hacker-green focus:border-[#00ff00] outline-none px-2 py-1 placeholder:text-[#003300]"
-            />
+
+        <div className="mt-8 flex justify-center relative z-20">
+          <input
+            type="password"
+            placeholder="[OPTIONAL] ACCESS_KEY"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-64 bg-[#000000] border-b-2 border-[#004400] focus:border-[#00ff41] focus:bg-[#001100] outline-none text-center text-sm font-display tracking-widest text-[#00ff41] px-4 py-3 placeholder:text-[#004400] transition-colors shadow-2xl"
+          />
         </div>
 
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-left">
-          <div className="p-4 border border-[#003300] bg-[#050505]/50 backdrop-blur-sm rounded">
-            <Zap className="mb-2 text-[#00ff00]" size={24} />
-            <h3 className="font-bold mb-1">Live Sync</h3>
-            <p className="text-hacker-greenDark text-xs">Real-time code, chat & terminal synced via WebSockets.</p>
-          </div>
-          <div className="p-4 border border-[#003300] bg-[#050505]/50 backdrop-blur-sm rounded">
-            <Shield className="mb-2 text-[#00ff00]" size={24} />
-            <h3 className="font-bold mb-1">Ephemeral</h3>
-            <p className="text-hacker-greenDark text-xs">Data vanishes after 24 hrs. Completely trackless.</p>
-          </div>
-          <div className="p-4 border border-[#003300] bg-[#050505]/50 backdrop-blur-sm rounded">
-            <Terminal className="mb-2 text-[#00ff00]" size={24} />
-            <h3 className="font-bold mb-1">Terminal UI</h3>
-            <p className="text-hacker-greenDark text-xs">Aesthetic designed for hackers, exclusively dark theme.</p>
-          </div>
-        </div>
       </div>
-      
+
     </div>
   );
 }
