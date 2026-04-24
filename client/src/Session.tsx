@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import Editor from '@monaco-editor/react';
-import { Terminal, Upload, Download, Copy, Users, Power, File as FileIcon } from 'lucide-react';
+import { Terminal, Upload, Download, Copy, Users, Power, File as FileIcon, Trash } from 'lucide-react';
 import { format } from 'date-fns';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || `http://${window.location.hostname}:3001`;
@@ -16,9 +16,12 @@ interface UserMsg {
 }
 
 interface UploadedFile {
+  id: string;
   name: string;
   url: string;
   type: string;
+  uploader: string;
+  clientId: string;
 }
 
 const LANGUAGE_TEMPLATES: Record<string, string> = {
@@ -133,6 +136,10 @@ export default function Session() {
         setMessages([]);
     });
 
+    socket.on('file_deleted', (fileId: string) => {
+        setFiles(prev => prev.filter(f => f.id !== fileId));
+    });
+
     socket.on('session_terminated', () => {
         localStorage.removeItem(`sys_paste_name_${sessionId}`);
         localStorage.removeItem('sys_paste_client_id');
@@ -147,6 +154,7 @@ export default function Session() {
         socket.off('language_update');
         socket.off('new_message');
         socket.off('new_file');
+        socket.off('file_deleted');
         socket.off('clear_terminal');
         socket.off('session_terminated');
     };
@@ -220,6 +228,8 @@ export default function Session() {
       setUploading(true);
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('uploader', displayName);
+      formData.append('clientId', localStorage.getItem('sys_paste_client_id') || '');
 
       try {
           await fetch(`${SERVER_URL}/api/sessions/${sessionId}/upload`, {
@@ -233,6 +243,23 @@ export default function Session() {
       } finally {
           setUploading(false);
           if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+  };
+
+  const deleteFile = async (fileId: string) => {
+      if (!window.confirm('Are you sure you want to delete this file?')) return;
+      const cId = localStorage.getItem('sys_paste_client_id') || '';
+      try {
+          const res = await fetch(`${SERVER_URL}/api/sessions/${sessionId}/files/${fileId}`, {
+              method: 'DELETE',
+              headers: { 'x-client-id': cId }
+          });
+          if (!res.ok) {
+              const data = await res.json();
+              alert(data.error || 'Failed to delete file');
+          }
+      } catch (err) {
+          console.error('Delete failed:', err);
       }
   };
 
@@ -453,14 +480,26 @@ export default function Session() {
                                   <div className="flex items-center truncate mr-2 text-gray-300">
                                       <FileIcon size={14} className="mr-2 text-gray-500" />
                                       <span className="truncate">{file.name}</span>
+                                      <span className="ml-2 text-[10px] text-hacker-greenDark truncate max-w-[80px]">[{file.uploader}]</span>
                                   </div>
-                                  <button 
-                                      onClick={() => forceDownload(file.url, file.name)}
-                                      className="text-gray-500 hover:text-[#00ff00] opacity-0 group-hover:opacity-100 transition-opacity"
-                                      title="Download File"
-                                  >
-                                      <Download size={16} />
-                                  </button>
+                                  <div className="flex items-center">
+                                      {file.clientId === localStorage.getItem('sys_paste_client_id') && (
+                                          <button 
+                                              onClick={() => deleteFile(file.id)}
+                                              className="text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity mr-3"
+                                              title="Delete File"
+                                          >
+                                              <Trash size={16} />
+                                          </button>
+                                      )}
+                                      <button 
+                                          onClick={() => forceDownload(file.url, file.name)}
+                                          className="text-gray-500 hover:text-[#00ff00] opacity-0 group-hover:opacity-100 transition-opacity"
+                                          title="Download File"
+                                      >
+                                          <Download size={16} />
+                                      </button>
+                                  </div>
                               </div>
                           ))
                       )}

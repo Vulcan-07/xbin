@@ -59,7 +59,7 @@ interface Session {
   contents: Record<string, string>;
   language: string;
   users: Map<string, string>; // socketId -> displayName
-  files: Array<{ name: string, url: string, type: string }>;
+  files: Array<{ id: string, name: string, url: string, type: string, uploader: string, clientId: string }>;
   messages: Array<{ id: string, sender: string, text: string, type: 'chat' | 'system', timestamp: number }>;
   createdAt: number;
 }
@@ -141,9 +141,12 @@ app.post('/api/sessions/:sessionId/upload', upload.single('file'), (req, res) =>
 
     const fileUrl = `/uploads/${sessionId}/${req.file.filename}`;
     const newFile = {
+        id: uuidv4(),
         name: req.file.originalname,
         url: fileUrl,
-        type: req.file.mimetype
+        type: req.file.mimetype,
+        uploader: req.body.uploader || 'Anonymous',
+        clientId: req.body.clientId || 'unknown'
     };
 
     session.files.push(newFile);
@@ -163,6 +166,43 @@ app.post('/api/sessions/:sessionId/upload', upload.single('file'), (req, res) =>
     io.to(sessionId).emit('new_message', msg);
 
     res.json(newFile);
+});
+
+app.delete('/api/sessions/:sessionId/files/:fileId', (req, res) => {
+    const { sessionId, fileId } = req.params;
+    const clientId = req.headers['x-client-id'];
+    
+    const session = sessions.get(sessionId);
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+    
+    const fileIndex = session.files.findIndex(f => f.id === fileId);
+    if (fileIndex === -1) return res.status(404).json({ error: 'File not found' });
+    
+    if (session.files[fileIndex].clientId !== clientId) {
+        return res.status(403).json({ error: 'Unauthorized to delete this file' });
+    }
+    
+    const file = session.files[fileIndex];
+    session.files.splice(fileIndex, 1);
+    
+    const filePath = path.join(__dirname, '../', file.url);
+    if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+    }
+    
+    io.to(sessionId).emit('file_deleted', fileId);
+    
+    const msg = { 
+        id: uuidv4(), 
+        sender: 'SYSTEM', 
+        text: `File deleted: ${file.name}`, 
+        type: 'system' as const, 
+        timestamp: Date.now() 
+    };
+    session.messages.push(msg);
+    io.to(sessionId).emit('new_message', msg);
+    
+    res.json({ success: true });
 });
 
 
