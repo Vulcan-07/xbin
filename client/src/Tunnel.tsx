@@ -106,7 +106,9 @@ export default function Tunnel() {
                 console.error(err);
             });
 
-        const newSocket = io(SERVER_URL);
+        const newSocket = io(SERVER_URL, {
+            transports: ['websocket', 'polling'],
+        });
         setSocket(newSocket);
 
         const savedName = localStorage.getItem(`0x_d3ad_name_${TunnelId}`);
