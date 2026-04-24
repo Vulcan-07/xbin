@@ -134,7 +134,8 @@ export default function Session() {
     });
 
     socket.on('session_terminated', () => {
-        alert('Session terminated by creator.');
+        localStorage.removeItem(`sys_paste_name_${sessionId}`);
+        alert('Session terminated. Local trace deleted.');
         navigate('/');
     });
 
