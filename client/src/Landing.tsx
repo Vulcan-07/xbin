@@ -4,6 +4,7 @@ import { Terminal, Shield, Zap } from 'lucide-react';
 
 export default function Landing() {
   const [loading, setLoading] = useState(false);
+  const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
   const handleCreateSession = async () => {
@@ -12,6 +13,8 @@ export default function Landing() {
       const SERVER_URL = import.meta.env.VITE_SERVER_URL || `http://${window.location.hostname}:3001`;
       const res = await fetch(`${SERVER_URL}/api/sessions`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: password || undefined })
       });
       const data = await res.json();
       if (data.sessionId) {
@@ -51,6 +54,16 @@ export default function Landing() {
           {/* Glitch Effect on Hover via pseudo elements, kept simple here with glow */}
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 shadow-[0_0_20px_#00ff00] transition-opacity duration-300 pointer-events-none" />
         </button>
+        
+        <div className="mt-4 flex justify-center">
+            <input 
+                type="password"
+                placeholder="[OPTIONAL] PASSWORD"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-transparent border-b border-[#003300] text-center text-xs text-hacker-green focus:border-[#00ff00] outline-none px-2 py-1 placeholder:text-[#003300]"
+            />
+        </div>
 
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-left">
           <div className="p-4 border border-[#003300] bg-[#050505]/50 backdrop-blur-sm rounded">

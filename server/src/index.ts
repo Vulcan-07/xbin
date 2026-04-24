@@ -55,6 +55,7 @@ const upload = multer({
 // State management
 interface Session {
   id: string;
+  password?: string;
   creatorClientId: string | null;
   contents: Record<string, string>;
   language: string;
@@ -92,9 +93,11 @@ const deleteSession = (sessionId: string) => {
 
 // API Routes
 app.post('/api/sessions', (req, res) => {
+  const { password } = req.body || {};
   const sessionId = uuidv4().substring(0, 8); // Short ID for pastebin style
   sessions.set(sessionId, {
     id: sessionId,
+    password: password || undefined,
     creatorClientId: null, // Will be set on first connect
     contents: { 'javascript': '// New hacker session created\n\nconsole.log("Welcome to the mainframe.");' },
     language: 'javascript',
@@ -119,10 +122,7 @@ app.get('/api/sessions/:sessionId', (req, res) => {
     }
     res.json({
         id: session.id,
-        content: session.contents[session.language] || '',
-        language: session.language,
-        files: session.files,
-        messages: session.messages,
+        hasPassword: !!session.password,
         usersCount: session.users.size
     });
 });
@@ -210,11 +210,16 @@ app.delete('/api/sessions/:sessionId/files/:fileId', (req, res) => {
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
-  socket.on('join_session', ({ sessionId, displayName, clientId }) => {
+  socket.on('join_session', ({ sessionId, displayName, clientId, password }) => {
     const session = sessions.get(sessionId);
     
     if (!session) {
         socket.emit('error', 'Session not found');
+        return;
+    }
+    
+    if (session.password && session.password !== password) {
+        socket.emit('auth_error', 'Invalid password');
         return;
     }
 
@@ -226,7 +231,14 @@ io.on('connection', (socket) => {
     session.users.set(socket.id, displayName);
 
     const isCreator = session.creatorClientId === clientId;
-    socket.emit('session_joined', { isCreator, users: Array.from(session.users.values()) });
+    socket.emit('session_joined', { 
+        isCreator, 
+        users: Array.from(session.users.values()),
+        content: session.contents[session.language] || '',
+        language: session.language,
+        files: session.files,
+        messages: session.messages
+    });
 
     // Notify others
     const joinMsg = { 

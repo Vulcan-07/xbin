@@ -42,6 +42,8 @@ export default function Session() {
   
   const [socket, setSocket] = useState<Socket | null>(null);
   const [displayName, setDisplayName] = useState(localStorage.getItem(`sys_paste_name_${sessionId}`) || '');
+  const [password, setPassword] = useState('');
+  const [hasPassword, setHasPassword] = useState(false);
   const [isJoined, setIsJoined] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [users, setUsers] = useState<string[]>([]);
@@ -72,10 +74,7 @@ export default function Session() {
         return res.json();
       })
       .then(data => {
-        setContent(data.content);
-        setLanguage(data.language);
-        setFiles(data.files);
-        setMessages(data.messages);
+        setHasPassword(data.hasPassword);
       })
       .catch((err) => {
           console.error(err);
@@ -101,14 +100,40 @@ export default function Session() {
   }, [sessionId, navigate]);
 
 
-  // Socket event listeners
+  // Central Socket Listeners
+  useEffect(() => {
+      if (!socket) return;
+      
+      socket.on('auth_error', (msg) => {
+          alert('Authentication failed: ' + msg);
+          setIsJoined(false);
+      });
+      
+      socket.on('error', (msg) => {
+          alert(msg);
+          navigate('/');
+      });
+
+      socket.on('session_joined', (data) => {
+          setIsCreator(data.isCreator);
+          setUsers(data.users);
+          setContent(data.content);
+          setLanguage(data.language);
+          setFiles(data.files);
+          setMessages(data.messages);
+          setIsJoined(true);
+      });
+      
+      return () => {
+          socket.off('auth_error');
+          socket.off('error');
+          socket.off('session_joined');
+      }
+  }, [socket, navigate]);
+
+  // Joined Socket event listeners
   useEffect(() => {
     if (!socket || !isJoined) return;
-
-    socket.on('session_joined', (data) => {
-        setIsCreator(data.isCreator);
-        setUsers(data.users);
-    });
 
     socket.on('users_update', (newUsers) => setUsers(newUsers));
     
@@ -148,7 +173,6 @@ export default function Session() {
     });
 
     return () => {
-        socket.off('session_joined');
         socket.off('users_update');
         socket.off('code_update');
         socket.off('language_update');
@@ -177,8 +201,8 @@ export default function Session() {
           localStorage.setItem('sys_paste_client_id', cId);
       }
       
-      socket.emit('join_session', { sessionId, displayName: displayName.trim(), clientId: cId });
-      setIsJoined(true);
+      socket.emit('join_session', { sessionId, displayName: displayName.trim(), clientId: cId, password });
+      // We do NOT set isJoined true here anymore! We wait for session_joined event!
   };
 
   const handleCodeChange = (value: string | undefined) => {
@@ -326,6 +350,19 @@ export default function Session() {
                           required
                       />
                   </div>
+                  {hasPassword && (
+                    <div className="mb-6">
+                        <label className="block text-xs text-hacker-greenDark mb-2 uppercase">PASSWORD</label>
+                        <input 
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full bg-hacker-darker border-b border-hacker-greenDark focus:border-hacker-green outline-none text-hacker-green px-2 py-2 font-mono placeholder:text-[#004400]"
+                            placeholder="Enter Session Password"
+                            required
+                        />
+                    </div>
+                  )}
                   <button type="submit" className="w-full bg-hacker-green text-black font-bold py-2 hover:bg-[#33ff33] transition-colors">
                       [ INITIATE_HANDSHAKE ]
                   </button>
