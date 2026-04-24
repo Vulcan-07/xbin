@@ -135,7 +135,8 @@ export default function Session() {
 
     socket.on('session_terminated', () => {
         localStorage.removeItem(`sys_paste_name_${sessionId}`);
-        alert('Session terminated. Local trace deleted.');
+        localStorage.removeItem('sys_paste_client_id');
+        alert('Session terminated. All local traces securely deleted.');
         navigate('/');
     });
 
@@ -246,6 +247,7 @@ export default function Session() {
       if (window.confirm('Disconnect and leave this session?')) {
           if (socket) socket.disconnect();
           localStorage.removeItem(`sys_paste_name_${sessionId}`);
+          localStorage.removeItem('sys_paste_client_id');
           navigate('/');
       }
   };
