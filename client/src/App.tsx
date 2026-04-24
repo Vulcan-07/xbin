@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Landing from './Landing';
-import Session from './Session';
+import Landing from './Landing.tsx';
+import Session from './Session.tsx';
 
 function App() {
   return (
