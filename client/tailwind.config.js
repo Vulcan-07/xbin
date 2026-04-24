@@ -7,25 +7,39 @@ export default {
   theme: {
     extend: {
       colors: {
-        hacker: {
-          dark: '#0a0a0a',
-          darker: '#020202',
-          green: '#00ff41',
-          greenDark: '#008f11',
-          greenGlow: 'rgba(0, 255, 65, 0.2)',
+        cyber: {
+          base: '#0B1120',      
+          surface: '#121B2A',   
+          surfaceHover: '#1A2436',
+          border: '#1E293B',    
+          accent: '#06b6d4', // Cyan
+          blue: '#3b82f6',   // Electric Blue
+          violet: '#8b5cf6', // Violet
+          text: '#94A3B8',
+          textBright: '#F8FAFC'
         }
       },
       fontFamily: {
-        mono: ['"Fira Code"', 'monospace'],
-        display: ['"Share Tech Mono"', 'monospace'],
+        sans: ['"Inter"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
       animation: {
-        'glitch': 'glitch 1s linear infinite',
-        'crt-flicker': 'flicker 0.15s infinite',
-        'scanline': 'scanline 10s linear infinite',
+        'waveform': 'waveform 3s ease-in-out infinite alternate',
+        'fade-in': 'fadeIn 0.5s ease-out forwards',
+        'pulse-glow': 'pulseGlow 2s ease-in-out infinite alternate',
+        'gradient-xy': 'gradientXY 10s ease infinite',
       },
-      backgroundImage: {
-        'scanlines': 'linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.25) 51%)',
+      keyframes: {
+        gradientXY: {
+          '0%, 100%': {
+            'background-size': '400% 400%',
+            'background-position': 'left center'
+          },
+          '50%': {
+            'background-size': '200% 200%',
+            'background-position': 'right center'
+          }
+        }
       }
     }
   },
