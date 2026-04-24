@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-hacker-darker text-hacker-green font-mono antialiased overflow-hidden;
+  }
+}
+
+/* Custom Scrollbar for terminal vibe */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #000; 
+}
+::-webkit-scrollbar-thumb {
+  background: #008000; 
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00ff00; 
+}
