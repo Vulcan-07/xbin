@@ -9,7 +9,7 @@ export default function Landing() {
   const handleCreateSession = async () => {
     try {
       setLoading(true);
-      const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+      const SERVER_URL = import.meta.env.VITE_SERVER_URL || `http://${window.location.hostname}:3001`;
       const res = await fetch(`${SERVER_URL}/api/sessions`, {
         method: 'POST',
       });

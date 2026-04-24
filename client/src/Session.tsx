@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import Editor from '@monaco-editor/react';
 import { Terminal, Upload, Download, Copy, Users, Power, File as FileIcon } from 'lucide-react';
 import { format } from 'date-fns';
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL || 'http://localhost:3001';
+const SERVER_URL = import.meta.env.VITE_SERVER_URL || `http://${window.location.hostname}:3001`;
 
 interface UserMsg {
   id: string;
