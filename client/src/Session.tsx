@@ -38,7 +38,7 @@ export default function Session() {
   const navigate = useNavigate();
   
   const [socket, setSocket] = useState<Socket | null>(null);
-  const [displayName, setDisplayName] = useState(localStorage.getItem('sys_paste_name') || '');
+  const [displayName, setDisplayName] = useState(localStorage.getItem(`sys_paste_name_${sessionId}`) || '');
   const [isJoined, setIsJoined] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [users, setUsers] = useState<string[]>([]);
@@ -81,7 +81,7 @@ export default function Session() {
     const newSocket = io(SERVER_URL);
     setSocket(newSocket);
 
-    const savedName = localStorage.getItem('sys_paste_name');
+    const savedName = localStorage.getItem(`sys_paste_name_${sessionId}`);
     if (savedName) {
         let cId = localStorage.getItem('sys_paste_client_id');
         if (!cId) {
@@ -160,7 +160,7 @@ export default function Session() {
       e.preventDefault();
       if (!displayName.trim() || !socket) return;
       
-      localStorage.setItem('sys_paste_name', displayName.trim());
+      localStorage.setItem(`sys_paste_name_${sessionId}`, displayName.trim());
       let cId = localStorage.getItem('sys_paste_client_id');
       if (!cId) {
           cId = crypto.randomUUID();
@@ -247,6 +247,24 @@ export default function Session() {
   
   const copyUrl = () => {
       navigator.clipboard.writeText(window.location.href);
+  };
+
+  const forceDownload = async (fileUrl: string, fileName: string) => {
+      try {
+          const response = await fetch(`${SERVER_URL}${fileUrl}`);
+          const blob = await response.blob();
+          const blobUrl = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(blobUrl);
+      } catch (err) {
+          console.error("Download failed:", err);
+          window.open(`${SERVER_URL}${fileUrl}`, '_blank');
+      }
   };
 
 
@@ -421,15 +439,13 @@ export default function Session() {
                                       <FileIcon size={14} className="mr-2 text-gray-500" />
                                       <span className="truncate">{file.name}</span>
                                   </div>
-                                  <a 
-                                      href={`${SERVER_URL}${file.url}`} 
-                                      download={file.name}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
+                                  <button 
+                                      onClick={() => forceDownload(file.url, file.name)}
                                       className="text-gray-500 hover:text-[#00ff00] opacity-0 group-hover:opacity-100 transition-opacity"
+                                      title="Download File"
                                   >
                                       <Download size={16} />
-                                  </a>
+                                  </button>
                               </div>
                           ))
                       )}
