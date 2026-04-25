@@ -5,12 +5,19 @@
     {
       "src": "/favicon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/maskable-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ],
   "start_url": "/",
-  "background_color": "#0b101c",
+  "background_color": "#0B1120",
   "display": "standalone",
-  "theme_color": "#0b101c",
+  "theme_color": "#0B1120",
   "orientation": "portrait-primary"
 }
