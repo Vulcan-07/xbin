@@ -1,0 +1,16 @@
+{
+  "short_name": "0xD3ad",
+  "name": "0xD3ad Anonymous Tunnel",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0b101c",
+  "display": "standalone",
+  "theme_color": "#0b101c",
+  "orientation": "portrait-primary"
+}

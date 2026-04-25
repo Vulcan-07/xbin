@@ -62,7 +62,7 @@ export default function Landing() {
   };
 
   return (
-    <div onMouseMove={handleMouseMove} className="min-h-screen flex flex-col items-center justify-center relative bg-cyber-base overflow-hidden selection:bg-cyber-blue/30 font-sans">
+    <div onMouseMove={handleMouseMove} className="min-h-[100dvh] flex flex-col items-center justify-center relative bg-cyber-base overflow-hidden selection:bg-cyber-blue/30 font-sans">
 
       {/* Cinematic Background */}
       <div className="absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_50%,_#151D2F_0%,_#0B1120_100%)] opacity-80" />

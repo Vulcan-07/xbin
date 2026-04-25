@@ -360,10 +360,10 @@ export default function Tunnel() {
 
     if (!isJoined) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-cyber-base relative overflow-hidden selection:bg-cyber-blue/30">
+            <div className="min-h-[100dvh] flex items-center justify-center bg-cyber-base relative overflow-hidden selection:bg-cyber-blue/30 p-4">
                 <div className="absolute inset-0 z-0 opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-cyber-blue via-cyber-base to-cyber-base animate-gradient-xy" />
 
-                <form onSubmit={handleJoin} className="relative z-10 p-8 rounded-2xl border border-white/5 bg-cyber-surface/60 backdrop-blur-3xl shadow-[0_0_50px_rgba(59,130,246,0.05)] max-w-md w-full">
+                <form onSubmit={handleJoin} className="relative z-10 p-6 md:p-8 rounded-2xl border border-white/5 bg-cyber-surface/60 backdrop-blur-3xl shadow-[0_0_50px_rgba(59,130,246,0.05)] max-w-md w-full mx-auto">
                     <div className="flex items-center mb-8 text-cyber-textBright">
                         <div className="p-2 bg-cyber-blue/10 rounded-lg mr-4 border border-cyber-blue/20">
                             <Lock size={20} className="text-cyber-blue" />
@@ -408,18 +408,18 @@ export default function Tunnel() {
             initial={{ opacity: 0, filter: 'blur(5px)' }}
             animate={{ opacity: 1, filter: 'blur(0px)' }}
             transition={{ duration: 0.8 }}
-            className="h-screen flex flex-col bg-cyber-base text-cyber-textBright font-sans selection:bg-cyber-blue/30 p-2 gap-2"
+            className="h-[100dvh] flex flex-col bg-cyber-base text-cyber-textBright font-sans selection:bg-cyber-blue/30 p-2 gap-2"
         >
 
             {/* Header */}
-            <header className="h-14 rounded-xl border border-white/5 flex items-center justify-between px-6 bg-cyber-surface/40 backdrop-blur-md shadow-sm shrink-0">
-                <div className="flex items-center space-x-6">
+            <header className="h-auto md:h-14 py-3 md:py-0 rounded-xl border border-white/5 flex flex-col md:flex-row items-center justify-between px-4 md:px-6 bg-cyber-surface/40 backdrop-blur-md shadow-sm shrink-0 gap-3 md:gap-0">
+                <div className="flex items-center space-x-4 md:space-x-6 w-full md:w-auto justify-between md:justify-start">
                     <div className="font-semibold text-white flex items-center text-lg">
                         <Skull size={20} className="mr-3 text-[#00ff41] drop-shadow-[0_0_5px_rgba(0,255,65,0.8)]" strokeWidth={2} />
                         0xD3ad
                     </div>
-                    <div className="flex items-center space-x-3 text-xs bg-black/20 border border-white/5 px-4 py-1.5 rounded-lg">
-                        <span className="text-cyber-text">Tunnel</span>
+                    <div className="flex items-center space-x-2 md:space-x-3 text-xs bg-black/20 border border-white/5 px-3 md:px-4 py-1.5 rounded-lg">
+                        <span className="text-cyber-text hidden md:inline">Tunnel</span>
                         <span className="font-mono text-cyber-textBright">{TunnelId}</span>
                         <button onClick={copyUrl} className="ml-1 text-cyber-text hover:text-cyber-blue transition-colors" title="Copy URL">
                             <Copy size={14} />
@@ -427,7 +427,7 @@ export default function Tunnel() {
                     </div>
                 </div>
 
-                <div className="flex items-center space-x-3 text-xs font-medium">
+                <div className="flex items-center space-x-2 md:space-x-3 text-xs font-medium w-full md:w-auto justify-end">
                     <div className="flex items-center px-4 py-1.5 bg-cyber-blue/10 border border-cyber-blue/20 text-cyber-blue rounded-lg shadow-[0_0_10px_rgba(59,130,246,0.1)]">
                         <Users size={14} className="mr-2" />
                         {users.length} Active
@@ -447,10 +447,10 @@ export default function Tunnel() {
             </header>
 
             {/* Main Content */}
-            <div className="flex-1 flex gap-2 overflow-hidden h-full">
+            <div className="flex-1 flex flex-col md:flex-row gap-2 overflow-y-auto md:overflow-hidden h-full pb-2 md:pb-0 scroll-smooth">
 
                 {/* Left Panel: Editor */}
-                <div className="flex-1 flex flex-col rounded-xl border border-white/5 relative bg-[#0b101c]/80 overflow-hidden backdrop-blur-md shadow-lg">
+                <div className="min-h-[50vh] md:min-h-0 flex-1 flex flex-col rounded-xl border border-white/5 relative bg-[#0b101c]/80 overflow-hidden backdrop-blur-md shadow-lg shrink-0">
                     <div className="h-12 border-b border-white/5 flex items-center justify-between px-6 bg-cyber-surface/40 z-10">
                         <div ref={langMenuRef} className="relative">
                             <button
@@ -517,7 +517,7 @@ export default function Tunnel() {
                 </div>
 
                 {/* Right Panel: Chat & Files */}
-                <div className="w-[400px] flex flex-col gap-2 relative">
+                <div className="w-full md:w-[400px] h-[70vh] md:h-auto flex flex-col gap-2 relative shrink-0">
 
                     {/* Chat Area */}
                     <div className="flex-1 flex flex-col rounded-xl border border-white/5 bg-cyber-surface/30 backdrop-blur-md overflow-hidden shadow-lg min-h-[50%]">
