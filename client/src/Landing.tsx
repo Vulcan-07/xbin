@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Skull, Lock, Zap, Shield, Activity, Terminal, ChevronRight } from 'lucide-react';
+import { Lock, Zap, Shield, Activity, Terminal, ChevronRight } from 'lucide-react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import SkullLogo from './components/SkullLogo';
 

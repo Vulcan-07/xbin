@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import Editor from '@monaco-editor/react';
-import { Upload, Download, Copy, Users, Power, File as FileIcon, Trash, Skull, Lock, Send } from 'lucide-react';
+import { Upload, Download, Copy, Users, Power, File as FileIcon, Trash, Lock, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import SkullLogo from './components/SkullLogo';
