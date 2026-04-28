@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { io, Socket } from 'socket.io-client';
 import Editor from '@monaco-editor/react';
-import { Upload, Download, Copy, Users, Power, File as FileIcon, Trash, Lock, Send } from 'lucide-react';
+import { Upload, Download, Copy, Users, Power, File as FileIcon, Trash, Lock, Send, Play, Terminal, X, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import SkullLogo from './components/SkullLogo';
@@ -35,7 +35,9 @@ const LANGUAGE_TEMPLATES: Record<string, string> = {
     css: '/* New hacker Tunnel */\n\nbody {\n    background-color: #000;\n    color: #0f0;\n    font-family: monospace;\n}',
     json: '{\n  "status": "connected",\n  "system": "mainframe"\n}',
     markdown: '# Welcome to the mainframe\n\n- System connected\n- Access granted\n',
-    plaintext: 'Notes and logs...\n'
+    plaintext: 'Notes and logs...\n',
+    c: '#include <stdio.h>\n\nint main() {\n    printf("Welcome to the mainframe.\\n");\n    return 0;\n}',
+    cpp: '#include <iostream>\n\nint main() {\n    std::cout << "Welcome to the mainframe." << std::endl;\n    return 0;\n}'
 };
 
 export default function Tunnel() {
@@ -63,6 +65,9 @@ export default function Tunnel() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const langMenuRef = useRef<HTMLDivElement>(null);
     const [showLangMenu, setShowLangMenu] = useState(false);
+    const [isExecuting, setIsExecuting] = useState(false);
+    const [executionResult, setExecutionResult] = useState<{ stdout: string, stderr: string, output: string } | null>(null);
+    const [showOutput, setShowOutput] = useState(false);
 
     const LANGUAGES = [
         { value: 'javascript', label: 'JavaScript' },
@@ -74,6 +79,8 @@ export default function Tunnel() {
         { value: 'json', label: 'JSON' },
         { value: 'markdown', label: 'Markdown' },
         { value: 'plaintext', label: 'Notebook' },
+        { value: 'c', label: 'C' },
+        { value: 'cpp', label: 'C++' },
     ];
 
     // Close lang menu on outside click
@@ -332,6 +339,56 @@ export default function Tunnel() {
         }
     };
 
+    const runCode = async () => {
+        if (!content.trim() || isExecuting) return;
+
+        setIsExecuting(true);
+        setShowOutput(true);
+        setExecutionResult(null);
+
+        const languageMap: Record<string, { lang: string, version: string }> = {
+            javascript: { lang: 'javascript', version: '18.15.0' },
+            typescript: { lang: 'typescript', version: '5.0.3' },
+            python: { lang: 'python', version: '3.10.0' },
+            java: { lang: 'java', version: '15.0.2' },
+            c: { lang: 'c', version: '10.2.0' },
+            cpp: { lang: 'c++', version: '10.2.0' },
+        };
+
+        const target = languageMap[language];
+        if (!target) {
+            setExecutionResult({ stdout: '', stderr: `Execution not supported for ${language}`, output: `Execution not supported for ${language}` });
+            setIsExecuting(false);
+            return;
+        }
+
+        try {
+            const response = await fetch('https://emkc.org/api/v2/piston/execute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    language: target.lang,
+                    version: target.version,
+                    files: [{ content }]
+                })
+            });
+            const data = await response.json();
+            if (data.run) {
+                setExecutionResult({
+                    stdout: data.run.stdout,
+                    stderr: data.run.stderr,
+                    output: data.run.output
+                });
+            } else {
+                throw new Error(data.message || 'Execution failed');
+            }
+        } catch (error: any) {
+            setExecutionResult({ stdout: '', stderr: error.message, output: error.message });
+        } finally {
+            setIsExecuting(false);
+        }
+    };
+
     const copyCode = () => {
         navigator.clipboard.writeText(content);
     };
@@ -490,30 +547,94 @@ export default function Tunnel() {
                             )}
                             </AnimatePresence>
                         </div>
-                        <button onClick={copyCode} className="text-xs flex items-center text-cyber-text hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-md border border-white/5">
-                            <Copy size={14} className="mr-2" /> Copy Code
-                        </button>
+                        <div className="flex items-center gap-2">
+                            {['javascript', 'typescript', 'python', 'java', 'c', 'cpp'].includes(language) && (
+                                <button
+                                    onClick={runCode}
+                                    disabled={isExecuting}
+                                    className="text-xs flex items-center text-[#00ff41] hover:text-white transition-colors bg-[#00ff41]/10 hover:bg-[#00ff41]/20 px-3 py-1.5 rounded-md border border-[#00ff41]/20 disabled:opacity-50"
+                                >
+                                    {isExecuting ? (
+                                        <Loader2 size={14} className="mr-2 animate-spin" />
+                                    ) : (
+                                        <Play size={14} className="mr-2" />
+                                    )}
+                                    Run Code
+                                </button>
+                            )}
+                            <button onClick={copyCode} className="text-xs flex items-center text-cyber-text hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-md border border-white/5">
+                                <Copy size={14} className="mr-2" /> Copy Code
+                            </button>
+                        </div>
                     </div>
-                    <div className="flex-1 overflow-hidden pt-2">
-                        <Editor
-                            height="100%"
-                            defaultLanguage="javascript"
-                            language={language}
-                            theme="vs-dark"
-                            value={content}
-                            onChange={handleCodeChange}
-                            options={{
-                                minimap: { enabled: false },
-                                fontSize: 14,
-                                fontFamily: '"JetBrains Mono", monospace',
-                                scrollBeyondLastLine: false,
-                                smoothScrolling: true,
-                                cursorBlinking: "smooth",
-                                cursorStyle: 'line',
-                                roundedSelection: true,
-                                padding: { top: 16 }
-                            }}
-                        />
+                    <div className="flex-1 flex flex-col min-h-0 relative">
+                        <div className="flex-1 overflow-hidden pt-2">
+                            <Editor
+                                height="100%"
+                                defaultLanguage="javascript"
+                                language={language}
+                                theme="vs-dark"
+                                value={content}
+                                onChange={handleCodeChange}
+                                options={{
+                                    minimap: { enabled: false },
+                                    fontSize: 14,
+                                    fontFamily: '"JetBrains Mono", monospace',
+                                    scrollBeyondLastLine: false,
+                                    smoothScrolling: true,
+                                    cursorBlinking: "smooth",
+                                    cursorStyle: 'line',
+                                    roundedSelection: true,
+                                    padding: { top: 16 }
+                                }}
+                            />
+                        </div>
+
+                        {/* Execution Output */}
+                        <AnimatePresence>
+                            {showOutput && (
+                                <motion.div
+                                    initial={{ y: '100%' }}
+                                    animate={{ y: 0 }}
+                                    exit={{ y: '100%' }}
+                                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                    className="absolute bottom-0 left-0 right-0 h-1/2 bg-[#05080f] border-t border-white/10 z-20 flex flex-col shadow-[0_-10px_30px_rgba(0,0,0,0.5)]"
+                                >
+                                    <div className="h-10 border-b border-white/5 flex items-center justify-between px-4 bg-cyber-surface/60">
+                                        <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-cyber-text font-bold">
+                                            <Terminal size={12} className="text-cyber-blue" />
+                                            System Output
+                                        </div>
+                                        <button
+                                            onClick={() => setShowOutput(false)}
+                                            className="text-cyber-text hover:text-white p-1 hover:bg-white/5 rounded-md transition-colors"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                    <div className="flex-1 overflow-auto p-4 font-mono text-sm selection:bg-cyber-blue/30">
+                                        {isExecuting ? (
+                                            <div className="flex items-center gap-3 text-cyber-blue animate-pulse">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-cyber-blue" />
+                                                Executing process...
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-2">
+                                                {executionResult?.stdout && (
+                                                    <pre className="text-cyber-textBright whitespace-pre-wrap">{executionResult.stdout}</pre>
+                                                )}
+                                                {executionResult?.stderr && (
+                                                    <pre className="text-red-400 whitespace-pre-wrap">{executionResult.stderr}</pre>
+                                                )}
+                                                {!executionResult?.stdout && !executionResult?.stderr && (
+                                                    <div className="text-cyber-text/40 italic">Process finished with no output.</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
 
