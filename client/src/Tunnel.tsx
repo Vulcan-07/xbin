@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import SkullLogo from './components/SkullLogo';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || `http://${window.location.hostname}:3001`;
+const PISTON_URL = import.meta.env.VITE_PISTON_URL || 'https://emkc.org/api/v2/piston/execute';
 
 interface UserMsg {
     id: string;
@@ -68,6 +69,7 @@ export default function Tunnel() {
     const [isExecuting, setIsExecuting] = useState(false);
     const [executionResult, setExecutionResult] = useState<{ stdout: string, stderr: string, output: string } | null>(null);
     const [showOutput, setShowOutput] = useState(false);
+    const pyodideRef = useRef<any>(null);
 
     const LANGUAGES = [
         { value: 'javascript', label: 'JavaScript' },
@@ -346,10 +348,54 @@ export default function Tunnel() {
         setShowOutput(true);
         setExecutionResult(null);
 
+        // Local Execution for JS/TS
+        if (['javascript', 'typescript'].includes(language)) {
+            try {
+                const result = await runLocalJS(content);
+                setExecutionResult(result);
+            } catch (err: any) {
+                setExecutionResult({ stdout: '', stderr: err.message, output: err.message });
+            } finally {
+                setIsExecuting(false);
+            }
+            return;
+        }
+
+        // Local Execution for Python (Pyodide)
+        if (language === 'python') {
+            try {
+                const result = await runLocalPython(content);
+                setExecutionResult(result);
+            } catch (err: any) {
+                setExecutionResult({ stdout: '', stderr: err.message, output: err.message });
+            } finally {
+                setIsExecuting(false);
+            }
+            return;
+        }
+
+        // Fallback to Judge0 CE for others (Java, C, C++)
+        const judge0Map: Record<string, number> = {
+            java: 62, // OpenJDK 13
+            c: 50,    // GCC 9.2.0
+            cpp: 54   // GCC 9.2.0
+        };
+
+        const judge0Id = judge0Map[language];
+        if (judge0Id) {
+            try {
+                const result = await runJudge0(content, judge0Id);
+                setExecutionResult(result);
+            } catch (err: any) {
+                setExecutionResult({ stdout: '', stderr: err.message, output: err.message });
+            } finally {
+                setIsExecuting(false);
+            }
+            return;
+        }
+
+        // Final Fallback to Piston (if any mirrors are available)
         const languageMap: Record<string, { lang: string, version: string }> = {
-            javascript: { lang: 'javascript', version: '18.15.0' },
-            typescript: { lang: 'typescript', version: '5.0.3' },
-            python: { lang: 'python', version: '3.10.0' },
             java: { lang: 'java', version: '15.0.2' },
             c: { lang: 'c', version: '10.2.0' },
             cpp: { lang: 'c++', version: '10.2.0' },
@@ -357,13 +403,13 @@ export default function Tunnel() {
 
         const target = languageMap[language];
         if (!target) {
-            setExecutionResult({ stdout: '', stderr: `Execution not supported for ${language}`, output: `Execution not supported for ${language}` });
+            setExecutionResult({ stdout: '', stderr: `Client-side execution not yet supported for ${language}.`, output: `Client-side execution not yet supported for ${language}.` });
             setIsExecuting(false);
             return;
         }
 
         try {
-            const response = await fetch('https://emkc.org/api/v2/piston/execute', {
+            const response = await fetch(PISTON_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -380,12 +426,124 @@ export default function Tunnel() {
                     output: data.run.output
                 });
             } else {
-                throw new Error(data.message || 'Execution failed');
+                throw new Error(data.message || 'Execution failed (Piston API might be restricted)');
             }
         } catch (error: any) {
             setExecutionResult({ stdout: '', stderr: error.message, output: error.message });
         } finally {
             setIsExecuting(false);
+        }
+    };
+
+    const runLocalJS = (code: string): Promise<{ stdout: string, stderr: string, output: string }> => {
+        return new Promise((resolve) => {
+            const workerCode = `
+                const logs = [];
+                const customLog = (...args) => logs.push(args.map(a => {
+                    if (typeof a === 'object') return JSON.stringify(a, null, 2);
+                    return String(a);
+                }).join(' '));
+                
+                // Mock console
+                const console = {
+                    log: customLog,
+                    warn: customLog,
+                    error: customLog,
+                    info: customLog,
+                    debug: customLog
+                };
+
+                try {
+                    // Remove potential module exports/imports for simple eval
+                    const cleanCode = \`${code.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`;
+                    
+                    // Use a function constructor to avoid global scope pollution
+                    const result = new Function('console', cleanCode)(console);
+                    
+                    self.postMessage({ 
+                        stdout: logs.join('\\n'), 
+                        stderr: '', 
+                        output: logs.join('\\n') 
+                    });
+                } catch (err) {
+                    self.postMessage({ 
+                        stdout: logs.join('\\n'), 
+                        stderr: String(err), 
+                        output: String(err) 
+                    });
+                }
+            `;
+
+            const blob = new Blob([workerCode], { type: 'application/javascript' });
+            const worker = new Worker(URL.createObjectURL(blob));
+            
+            const timeout = setTimeout(() => {
+                worker.terminate();
+                resolve({ stdout: '', stderr: 'Execution Timed Out (5s)', output: 'Execution Timed Out (5s)' });
+            }, 5000);
+
+            worker.onmessage = (e) => {
+                clearTimeout(timeout);
+                worker.terminate();
+                resolve(e.data);
+            };
+
+            worker.onerror = (e) => {
+                clearTimeout(timeout);
+                worker.terminate();
+                resolve({ stdout: '', stderr: e.message, output: e.message });
+            };
+        });
+    };
+
+    const runLocalPython = async (code: string): Promise<{ stdout: string, stderr: string, output: string }> => {
+        try {
+            if (!pyodideRef.current) {
+                // Load Pyodide script dynamically
+                if (!(window as any).loadPyodide) {
+                    const script = document.createElement('script');
+                    script.src = "https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js";
+                    document.head.appendChild(script);
+                    await new Promise((resolve) => script.onload = resolve);
+                }
+                pyodideRef.current = await (window as any).loadPyodide();
+            }
+
+            const pyodide = pyodideRef.current;
+            
+            // Redirect stdout
+            let stdout = '';
+            pyodide.setStdout({ batched: (text: string) => stdout += text + '\n' });
+            pyodide.setStderr({ batched: (text: string) => stdout += 'ERROR: ' + text + '\n' });
+
+            await pyodide.runPythonAsync(code);
+
+            return { stdout, stderr: '', output: stdout };
+        } catch (err: any) {
+            return { stdout: '', stderr: err.message, output: err.message };
+        }
+    };
+
+    const runJudge0 = async (code: string, languageId: number): Promise<{ stdout: string, stderr: string, output: string }> => {
+        try {
+            const response = await fetch('https://ce.judge0.com/submissions?wait=true', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    source_code: code,
+                    language_id: languageId,
+                    stdin: ''
+                })
+            });
+            const data = await response.json();
+            
+            const stdout = data.stdout || '';
+            const stderr = data.stderr || data.compile_output || '';
+            const output = stdout || stderr || 'Process finished with no output.';
+
+            return { stdout, stderr, output };
+        } catch (err: any) {
+            throw new Error(`Judge0 Error: ${err.message}`);
         }
     };
 
