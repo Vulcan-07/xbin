@@ -5,6 +5,7 @@ import Editor from '@monaco-editor/react';
 import { Upload, Download, Copy, Users, Power, File as FileIcon, Trash, Skull, Lock, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
+import SkullLogo from './components/SkullLogo';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL || `http://${window.location.hostname}:3001`;
 
@@ -415,7 +416,7 @@ export default function Tunnel() {
             <header className="h-auto md:h-14 py-3 md:py-0 rounded-xl border border-white/5 flex flex-col md:flex-row items-center justify-between px-4 md:px-6 bg-cyber-surface/40 backdrop-blur-md shadow-sm shrink-0 gap-3 md:gap-0">
                 <div className="flex items-center space-x-4 md:space-x-6 w-full md:w-auto justify-between md:justify-start">
                     <div className="font-semibold text-white flex items-center text-lg">
-                        <Skull size={20} className="mr-3 text-[#00ff41] drop-shadow-[0_0_5px_rgba(0,255,65,0.8)]" strokeWidth={2} />
+                        <SkullLogo size={20} className="mr-3 text-[#00ff41] drop-shadow-[0_0_5px_rgba(0,255,65,0.8)]" />
                         0xD3ad
                     </div>
                     <div className="flex items-center space-x-2 md:space-x-3 text-xs bg-black/20 border border-white/5 px-3 md:px-4 py-1.5 rounded-lg">
@@ -522,7 +523,7 @@ export default function Tunnel() {
                     {/* Chat Area */}
                     <div className="flex-1 flex flex-col rounded-xl border border-white/5 bg-cyber-surface/30 backdrop-blur-md overflow-hidden shadow-lg min-h-[50%]">
                         <div className="h-12 bg-cyber-surface/50 border-b border-white/5 flex items-center px-6 text-xs font-semibold text-cyber-textBright tracking-wider gap-2 shadow-sm">
-                            <Skull size={14} className="text-[#00ff41] drop-shadow-[0_0_5px_rgba(0,255,65,0.8)]" />
+                            <SkullLogo size={14} className="text-[#00ff41] drop-shadow-[0_0_5px_rgba(0,255,65,0.8)]" />
                             Void
                         </div>
 

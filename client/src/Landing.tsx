@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Skull, Lock, Zap, Shield, Activity } from 'lucide-react';
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { Skull, Lock, Zap, Shield, Activity, Terminal, ChevronRight } from 'lucide-react';
+import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
+import SkullLogo from './components/SkullLogo';
 
 export default function Landing() {
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState('');
+  const [tunnelIdInput, setTunnelIdInput] = useState('');
+  const [mode, setMode] = useState<'create' | 'join'>('create');
   const [statusText, setStatusText] = useState('NODE STANDBY');
   const [geoData, setGeoData] = useState({ ip: '8.8.8.8', loc: 'MOUNTAIN VIEW, US' });
   const navigate = useNavigate();
@@ -61,6 +64,13 @@ export default function Landing() {
     }
   };
 
+  const handleJoinTunnel = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tunnelIdInput.trim()) return;
+    setStatusText('LOCATING TUNNEL...');
+    setTimeout(() => navigate(`/${tunnelIdInput.trim()}`), 500);
+  };
+
   return (
     <div onMouseMove={handleMouseMove} className="min-h-[100dvh] flex flex-col items-center justify-center relative bg-cyber-base overflow-hidden selection:bg-cyber-blue/30 font-sans">
 
@@ -112,7 +122,7 @@ export default function Landing() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-cyber-blue/10 rounded-full blur-[80px] pointer-events-none" />
 
           <div className="relative flex justify-center items-center h-[96px]">
-            <Skull size={80} className="text-[#00ff41] drop-shadow-[0_0_20px_rgba(0,255,65,0.8)]" />
+            <SkullLogo size={80} className="text-[#00ff41] drop-shadow-[0_0_20px_rgba(0,255,65,0.8)]" />
           </div>
         </motion.div>
 
@@ -127,30 +137,87 @@ export default function Landing() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 1 }}
-          className="flex flex-col items-center gap-5"
+          className="flex flex-col items-center gap-6"
         >
-          <div className="relative group w-72">
-            <input
-              type="password"
-              placeholder="Set access key (optional)"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-cyber-surface/40 backdrop-blur-xl border border-white/5 focus:border-cyber-blue/30 focus:bg-cyber-surface/70 outline-none text-center text-sm text-cyber-textBright px-5 py-4 rounded-xl placeholder:text-cyber-text/40 transition-all duration-300 shadow-[inset_0_2px_10px_rgba(0,0,0,0.2)]"
-            />
-            <Lock size={14} className="absolute left-5 top-1/2 -translate-y-1/2 text-cyber-text/30 group-focus-within:text-cyber-blue/60 group-focus-within:drop-shadow-[0_0_5px_rgba(59,130,246,0.5)] transition-all" />
+          {/* Mode Switcher */}
+          <div className="flex bg-black/30 p-1 rounded-xl border border-white/5 backdrop-blur-md mb-2">
+            <button
+              onClick={() => setMode('create')}
+              className={`px-6 py-2 rounded-lg text-xs font-medium transition-all duration-300 ${mode === 'create' ? 'bg-cyber-blue/20 text-white shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'text-cyber-text hover:text-white'}`}
+            >
+              INITIALIZE NEW
+            </button>
+            <button
+              onClick={() => setMode('join')}
+              className={`px-6 py-2 rounded-lg text-xs font-medium transition-all duration-300 ${mode === 'join' ? 'bg-cyber-blue/20 text-white shadow-[0_0_15px_rgba(59,130,246,0.2)]' : 'text-cyber-text hover:text-white'}`}
+            >
+              JOIN EXISTING
+            </button>
           </div>
 
-          <button
-            onClick={handleCreateTunnel}
-            disabled={loading}
-            className="group relative px-8 py-4 bg-white/[0.03] backdrop-blur-md border border-white/10 text-cyber-textBright text-sm font-medium rounded-xl hover:bg-cyber-blue/10 hover:border-cyber-blue/30 hover:text-white transition-all duration-500 disabled:opacity-50 overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] w-72 flex items-center justify-center gap-3"
-          >
-            {/* Edge Lighting Hover Effect */}
-            <span className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-cyber-blue/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <AnimatePresence mode="wait">
+            {mode === 'create' ? (
+              <motion.div
+                key="create"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="flex flex-col items-center gap-5 w-full"
+              >
+                <div className="relative group w-72">
+                  <input
+                    type="password"
+                    placeholder="Set access key (optional)"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-cyber-surface/40 backdrop-blur-xl border border-white/5 focus:border-cyber-blue/30 focus:bg-cyber-surface/70 outline-none text-center text-sm text-cyber-textBright px-5 py-4 rounded-xl placeholder:text-cyber-text/40 transition-all duration-300 shadow-[inset_0_2px_10px_rgba(0,0,0,0.2)]"
+                  />
+                  <Lock size={14} className="absolute left-5 top-1/2 -translate-y-1/2 text-cyber-text/30 group-focus-within:text-cyber-blue/60 group-focus-within:drop-shadow-[0_0_5px_rgba(59,130,246,0.5)] transition-all" />
+                </div>
 
-            {loading ? 'Initializing Transport...' : 'Start Anonymous Tunnel'}
-            {!loading && <Zap size={14} className="text-cyber-text/50 group-hover:text-cyber-accent group-hover:scale-110 transition-all duration-500" />}
-          </button>
+                <button
+                  onClick={handleCreateTunnel}
+                  disabled={loading}
+                  className="group relative px-8 py-4 bg-white/[0.03] backdrop-blur-md border border-white/10 text-cyber-textBright text-sm font-medium rounded-xl hover:bg-cyber-blue/10 hover:border-cyber-blue/30 hover:text-white transition-all duration-500 disabled:opacity-50 overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] w-72 flex items-center justify-center gap-3"
+                >
+                  <span className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-cyber-blue/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  {loading ? 'Initializing Transport...' : 'Start Anonymous Tunnel'}
+                  {!loading && <Zap size={14} className="text-cyber-text/50 group-hover:text-cyber-accent group-hover:scale-110 transition-all duration-500" />}
+                </button>
+              </motion.div>
+            ) : (
+              <motion.form
+                key="join"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                onSubmit={handleJoinTunnel}
+                className="flex flex-col items-center gap-5 w-full"
+              >
+                <div className="relative group w-72">
+                  <input
+                    type="text"
+                    placeholder="Enter Tunnel ID"
+                    value={tunnelIdInput}
+                    onChange={(e) => setTunnelIdInput(e.target.value)}
+                    autoFocus
+                    className="w-full bg-cyber-surface/40 backdrop-blur-xl border border-white/5 focus:border-cyber-blue/30 focus:bg-cyber-surface/70 outline-none text-center text-sm text-cyber-textBright px-5 py-4 rounded-xl placeholder:text-cyber-text/40 transition-all duration-300 shadow-[inset_0_2px_10px_rgba(0,0,0,0.2)]"
+                  />
+                  <Terminal size={14} className="absolute left-5 top-1/2 -translate-y-1/2 text-cyber-text/30 group-focus-within:text-cyber-blue/60 transition-all" />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!tunnelIdInput.trim()}
+                  className="group relative px-8 py-4 bg-white/[0.03] backdrop-blur-md border border-white/10 text-cyber-textBright text-sm font-medium rounded-xl hover:bg-cyber-blue/10 hover:border-cyber-blue/30 hover:text-white transition-all duration-500 disabled:opacity-50 overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.15)] w-72 flex items-center justify-center gap-3"
+                >
+                  <span className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-cyber-blue/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  Connect to Node
+                  <ChevronRight size={16} className="text-cyber-text/50 group-hover:text-cyber-accent group-hover:translate-x-1 transition-all duration-500" />
+                </button>
+              </motion.form>
+            )}
+          </AnimatePresence>
 
           {/* Subtle System Status Text */}
           <div className="h-4 mt-2">
